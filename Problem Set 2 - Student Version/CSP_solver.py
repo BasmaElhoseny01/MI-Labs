@@ -106,35 +106,24 @@ def custom_comparison(x, y):
 def least_restraining_values(problem: Problem, variable_to_assign: str, domains: Dict[str, set]) -> List[Any]:
     #TODO: Write this function
     # This is value ordering heuristic :D
-    print("least_restraining_values()")
-    print("variable_to_assign",variable_to_assign)
-    # print(domains)
-    # print(domains['(2, 3)'])
-    # print(domains['(3, 2)'])
-    # return None
+    # print("least_restraining_values()")
 
     # We need to check on all the values[Domain values] of the variable_to_assign
     variable_to_assign_values=domains[variable_to_assign]
 
+    # The list of the values to be ordered according to the values that results in least constraints
     least_restraining_values_list=[]
-    # Min Priority Queue
-    # priority_queue = PriorityQueue()
     
 
     # Loop over all the values in the variable_to_assign domain
     for variable_to_assign_value in variable_to_assign_values:
-        # if(variable_to_assign_value not in [2]):continue
-        print("variable_to_assign_value",variable_to_assign_value)
 
         # Create a copy [Deep] of the domains Dictionary
         domains_copy=copy.deepcopy(domains)
 
-        # The question is which heuristic to use ==> we need to choose the value that makes the min among remaining values of all other unassigned variables the min
-        # min_remaining_values_count=sys.maxsize
+        # The question is which heuristic to use?? The value that crosses out values [least] from domain of the variables
         remaining_values={}
 
-
-        
         # Loop over Constraints
         for constraint in problem.constraints:
             # The Variables of the binary constraint
@@ -158,33 +147,12 @@ def least_restraining_values(problem: Problem, variable_to_assign: str, domains:
 
             if(variable_to_assign_value not in other_variable_domain ):
                 remaining_values[other_variable]=len(other_variable_domain)
-                print("*********")
+                # No need to continue it won't cross out any thing just add the remaining values in the dictionary to be used in cal the heuristic
                 continue
             
-
-            # print("other_variable_domain",other_variable_domain)
             other_variable_domain.discard(variable_to_assign_value)
             remaining_values[other_variable]=len(other_variable_domain)
-            # print("other_variable_domain",other_variable_domain)
       
-
-            # Count the Remaining values for the unassigned_variable if this value(for variable_to_assign) is chosen
-            # other_variable_remaining_values_count=len(other_variable_domain)
-            # print("other_variable_remaining_values_count",other_variable_remaining_values_count)
-            # print("-----------")
-
-            # Update min_remaining_values_count with other_variable_remaining_values_count
-            # Taking min ie if the remaining values of this variable is less than the previous one then take this as the min
-            # print("other_variable",other_variable)
-            # if(other_variable_remaining_values_count<min_remaining_values_count):
-                # min_remaining_values_count=other_variable_remaining_values_count
-                # print(other_variable)
-                # print(other_variable_domain)
-            # min_remaining_values_count=min(other_variable_remaining_values_count,min_remaining_values_count)
-
-        # Add the heuristic value as priority of the list
-        # print("min_remaining_values_count",min_remaining_values_count)
-        # least_restraining_values_list.append((-1*min_remaining_values_count,variable_to_assign_value))
 
         # Calculate LCV heuristic = summation of the remaining domains for all the variables
         # NB: I have discarded the domains that don't interact with the variable to be assigned bec we just will have the same no added to 
@@ -200,47 +168,8 @@ def least_restraining_values(problem: Problem, variable_to_assign: str, domains:
     # Extract values by discarding the priority
     least_restraining_values_list = [value for priority, value in least_restraining_values_list]
 
-    print(least_restraining_values_list)
 
     return least_restraining_values_list
-    least_restraining_values_list=sorted(least_restraining_values_list, key=cmp_to_key(custom_comparison))
-
-    # Extract values by discarding the priority
-    least_restraining_values_list = [value for priority, value in least_restraining_values_list]
-    print(least_restraining_values_list)
-    return least_restraining_values_list
-
-
-
-            # return None
-  
-        
-
-        # # For each other unassigned variable
-        # for unassigned_variable in domains.keys():
-        #     # if this is the variable we are trying to find its value -> continue
-        #     if(unassigned_variable==variable_to_assign): continue
-
-        #     # Remove variable_to_assign_value from the unassigned_variable domain
-        #     unassigned_variable_domain=domains[unassigned_variable]
-        #     unassigned_variable_domain.discard(variable_to_assign_value)
-
-        #     # Count the Remaining values for the unassigned_variable if this value(for variable_to_assign) is chosen
-        #     unassigned_variable_remaining_values_count=len(unassigned_variable_domain)
-
-        #     # Update min_remaining_values_count with unassigned_variable_remaining_values_count
-        #     # Taking min ie if the remaining values of this variable is less than the previous one then take this as the min
-        #     min_remaining_values_count=min(unassigned_variable_remaining_values_count,unassigned_variable_remaining_values_count)
-
-        # Add this value to the priority queue with priority of min_remaining_values_count
-        # heapq.heappush(least_restraining_values_list,-1*min_remaining_values_count)
-
-
-    # Return Heap (orderd list)
-    # Convert the heap to an ordered list (from smallest to largest)
-    # least_restraining_values_list = heapq.nlargest(len(least_restraining_values_list), least_restraining_values_list)
-    # return least_restraining_values_list
-
     NotImplemented()
 
 # This function should solve CSP problems using backtracking search with forward checking.
