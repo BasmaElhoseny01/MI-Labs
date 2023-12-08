@@ -67,11 +67,10 @@ def forward_checking(problem: Problem, assigned_variable: str, assigned_value: A
         if other_variable not in domains.keys(): continue  #assigned before
 
         # Update other variable's domain
-        other_variable_domain=domains[other_variable]
-        other_variable_domain.discard(assigned_value)
+        domains[other_variable].discard(assigned_value)
 
         # Check if empty Set(this variable has no domain)
-        if( not other_variable_domain):
+        if( not domains[other_variable]):
             return False
         
 
@@ -183,5 +182,75 @@ def least_restraining_values(problem: Problem, variable_to_assign: str, domains:
 #            Also, if 1-Consistency deems the whole problem unsolvable, you shouldn't call "problem.is_complete" at all.
 def solve(problem: Problem) -> Optional[Assignment]:
     #TODO: Write this function
+    print("solve()")
+    # print(problem.variables)
+    # print(problem.domains)
+    # print(problem.constraints)
+
+
+    # Handling Unary constraints using 1-Consistency
+    unary_solvable=one_consistency(problem)
+
+    # The Unary constraints makes the problem un solvable
+    if(not unary_solvable): return None
+
+    # Apply BackTracking Search Starting with empty assignment :D
+    return recursive_backtracking(problem,{},problem.domains)
     NotImplemented()
-    
+
+def recursive_backtracking(problem: Problem,assignment:Assignment,domains: Dict[str, set]):
+    print("recursive_backtracking()")
+
+    # check if assignment is complete [Exit Condition]
+    if problem.is_complete(assignment): return assignment 
+
+
+    # Variable Ordering MRV
+    variable=minimum_remaining_values(problem,domains)
+
+    # Value Ordering 
+    ordered_values=least_restraining_values(problem, variable, domains)
+
+    print(variable)
+    print(ordered_values)
+
+
+    # Remove this variable from the domain Dictionary since they contain the current domains of unassigned variables only.
+    del domains[variable]
+
+    for value in ordered_values:
+        # Take this Assignment variable=value
+        assignment[variable]=value
+
+        # Apply Forward Checking to remove non satisfying values in other domains
+        # domains=problem.domains
+
+        # # Remove this variable from the domain Dictionary since they contain the current domains of unassigned variables only.
+        # del domains[variable]
+
+        if forward_checking(problem, variable, value, domains):
+            # Assignment is fine
+            # Go next
+            result=recursive_backtracking(problem,assignment,domains)
+            if result : return result
+        else:
+            # remove this assignment --> from forward checking this assignment lets other variable has empty domain
+            del assignment[variable]
+
+    #         # Then this Value if fine
+    #         # Apply Backtrack on next variable
+    #         result=recursive_backtracking(problem,assignment)
+
+    #         if result is None:
+    #             # Backtrack
+    #             # Remove assignment
+    #             del assignment[variable]
+    #             domains=problem.domains #Domains Back
+    #         else:
+    #             # Check if complete the return sol
+    #             if problem.is_complete(assignment): return assignment 
+
+
+
+
+    return None
