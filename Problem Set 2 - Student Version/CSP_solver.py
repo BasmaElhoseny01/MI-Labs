@@ -5,6 +5,8 @@ import sys
 import heapq
 import copy
 from queue import PriorityQueue
+from copy import deepcopy
+
 
 # This function applies 1-Consistency to the problem.
 # In other words, it modifies the domains to only include values that satisfy their variables' unary constraints.
@@ -31,6 +33,7 @@ def one_consistency(problem: Problem) -> bool:
 # NOTE: If multiple variables have the same priority given the MRV heuristic, 
 #       we order them in the same order in which they appear in "problem.variables".
 def minimum_remaining_values(problem: Problem, domains: Dict[str, set]) -> str:
+    # print("domains",domains)
     _, _, variable = min((len(domains[variable]), index, variable) for index, variable in enumerate(problem.variables) if variable in domains)
     return variable
 
@@ -58,6 +61,7 @@ def forward_checking(problem: Problem, assigned_variable: str, assigned_value: A
         # If this constraint doesn't have the assigned_variable then nothing to be done bec we are implementing forward checking
         if assigned_variable not in constraint_variables: continue
 
+
         # So Here we have a Binary Constraint that involves the assigned_variable
         # Getting the other variable 
         index_of_variable = constraint_variables.index(assigned_variable)
@@ -66,8 +70,15 @@ def forward_checking(problem: Problem, assigned_variable: str, assigned_value: A
         # Check if the other variable is in the Domain dictionary else it is assigned before
         if other_variable not in domains.keys(): continue  #assigned before
 
-        # Update other variable's domain
-        domains[other_variable].discard(assigned_value)
+
+        # Update other variable's domain if it break this constraint :D
+        temp_assignment={assigned_variable:assigned_value}
+
+        copy_domains=deepcopy(domains[other_variable])
+        for other_variable_value in copy_domains:
+            temp_assignment[other_variable]=other_variable_value
+            if(not constraint.is_satisfied(temp_assignment)):
+                domains[other_variable].discard(other_variable_value)
 
         # Check if empty Set(this variable has no domain)
         if( not domains[other_variable]):
@@ -89,7 +100,7 @@ def custom_comparison(x, y):
         return priority_diff
     
     # If priorities are equal, compare by value
-    return x[1] - y[1]
+    return int(x[1]) - int(y[1])
 
 
 # This function should return the domain of the given variable order based on the "least restraining value" heuristic.
@@ -191,7 +202,10 @@ def solve(problem: Problem) -> Optional[Assignment]:
     if(not unary_solvable): return None
 
     # Apply BackTracking Search Starting with empty assignment :D [Incremental building of teh solution :D]
-    return recursive_backtracking(problem,{},problem.domains)
+    solution=recursive_backtracking(problem,{},problem.domains)
+    print("sol:",solution)
+    return solution
+    # return recursive_backtracking(problem,{},problem.domains)
     NotImplemented()
 
 def recursive_backtracking(problem: Problem,assignment:Assignment,domains: Dict[str, set]):
@@ -217,6 +231,7 @@ def recursive_backtracking(problem: Problem,assignment:Assignment,domains: Dict[
         
         # Applying Forward Check on this assignment
         if forward_checking(problem, variable, value, domains_copy):
+            # print("After Foward check",domains_copy)
             # This Assignment passed Forward Check
 
             # Take this Assignment variable=value

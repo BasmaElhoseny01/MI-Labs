@@ -68,7 +68,11 @@ class SudokuProblem(Problem):
         for pair in var_fixed_pairs:
             for var_list, fixed_list in zip(*pair):
                 for index, variable in enumerate(var_list):
+                #    print("variable",variable)
+                #    print("var_list",fixed_list)
                    constraints.extend(UnaryConstraint(variable, unary_not_equal_condition(fixed)) for fixed in fixed_list)
+                #    print("variable",variable)
+                #    print("var_list",var_list)
                    constraints.extend(BinaryConstraint((variable, other), not_equal_condition) for other in var_list[index+1:])
         
         problem = SudokuProblem()
