@@ -56,6 +56,9 @@ class CryptArithmeticProblem(Problem):
         # unary_not_equal_condition is a lambda function that takes one parameter f. It returns another lambda function that takes a parameter v and checks if v is not equal to f.
         unary_not_equal_condition = lambda f: (lambda v: v != f)
 
+        #  unary_equal_condition is a lambda function that takes one parameter f. It returns another lambda function that takes a parameter v and checks if v is equal to f.
+        unary_equal_condition = lambda f: (lambda v: v == f)
+
         print("from_text()")
         print(text)
         print( problem.LHS )
@@ -73,6 +76,14 @@ class CryptArithmeticProblem(Problem):
         for letter in problem.variables:
             problem.domains[letter]=set(range(0,10))
 
+        # Adding Carries Variable
+        problem.variables.extend([f"C{i}" for i in range(min(len(LHS0),len(LHS1))+1)])
+
+        for i in range(min(len(LHS0),len(LHS1))+1):
+            problem.domains[f"C{i}"]=set([0,1])
+
+        
+
         # Constraints
         problem.constraints=[]
 
@@ -82,6 +93,10 @@ class CryptArithmeticProblem(Problem):
         problem.constraints.append(UnaryConstraint(operand_2[0], unary_not_equal_condition(0)))
         problem.constraints.append(UnaryConstraint(sum[0], unary_not_equal_condition(0)))
 
+        # C0 is set to 0 :D No Carry in
+        problem.constraints.append(UnaryConstraint('C0', unary_equal_condition(0)))
+
+
         # Different All diff Not Equal
         for index,variable in enumerate(problem.variables):
             problem.constraints.extend(BinaryConstraint((variable, other), not_equal_condition) for other in problem.variables [index+1:])
@@ -90,39 +105,50 @@ class CryptArithmeticProblem(Problem):
         # operand_1[-1]+operand_2[-1]
         # Lambda Expression that takes 2 Variables and check if the second one is the first right digit in the first parameter
         first_digit_condition = lambda ab, a: ab[0] == str(a)
-        second_digit_condition = lambda ab, b: ab[1:] == str(b)
-        digit_sum_condition = lambda ab, cd: int(ab[1])+int(ab[0]) == int(cd[1])+int(cd[0])
+        
+        first_2_digit_condition = lambda abc, ab: abc[0:2] == str(ab)
+
+        second_digit_condition = lambda ab, b: ab[-1] == str(b)
+        digit_sum_condition = lambda abc, cd: int(abc[2]+abc[1])+int(abc[0]) == int(cd[1])+int(cd[0])
 
 
-        # O+O=T+C1
+        # A+B+C1=C+C2
 
-        # G,T->GT  [2 binary]
-        # U,C2->UC2 [2 binary]
-        # sum(GT)=sum(UC2)  1 binary
+        # A,B->AB  [2 binary]
+        # AB,C0->ABC0 [2 binary]
+
+        # C,C1->CC1  [2 binary]
+        
+        # sum(ABC0)=sum(CC1)  1 binary
         # TODO Handel no equal size
         for i in range(1,min(len(LHS0),len(LHS1))+1):
             # New Variable to be added in the Domain
             LSH_var=LHS0[-1*i]+LHS1[-1*i]
             RSH_var=RHS[-1*i]+f"C{i}"
-            problem.variables.append(LSH_var) #GT
-            
-            problem.variables.append(f"C{i}")
-            problem.variables.append(RSH_var) #UC2
+
+            problem.variables.append(LSH_var) # AB
+            problem.variables.append(LSH_var+f"C{i-1}") # ABC0
+
+            problem.variables.append(RSH_var) # CC1
 
             # Domains for new Variables
             problem.domains[LSH_var]=set([f"{a}{b}" for a in range(10) for b in range(10)])
-            problem.domains[f"C{i}"]=set([0,1])
+            problem.domains[LSH_var+f"C{i-1}"]=set([f"{a}{b}{c}" for a in range(10) for b in range(10) for c in range(2)])
             problem.domains[RSH_var]=set([f"{a}{b}" for a in range(10) for b in range(2)])
 
 
             # Add Constraints
-            problem.constraints.append(BinaryConstraint((LSH_var, LHS0[-1*i]), first_digit_condition))
-            problem.constraints.append(BinaryConstraint((LSH_var, LHS1[-1*i]), second_digit_condition))
-            
-            problem.constraints.append(BinaryConstraint((RSH_var, RHS[-1*i]), first_digit_condition))
-            problem.constraints.append(BinaryConstraint((RSH_var, f"C{i}"), second_digit_condition))
+            problem.constraints.append(BinaryConstraint((LSH_var, LHS0[-1*i]), first_digit_condition)) #AB
+            problem.constraints.append(BinaryConstraint((LSH_var, LHS1[-1*i]), second_digit_condition)) #AB
+    
 
-            problem.constraints.append(BinaryConstraint((LSH_var, RSH_var), digit_sum_condition))
+            problem.constraints.append(BinaryConstraint((LSH_var+f"C{i-1}", LSH_var), first_2_digit_condition)) # ABC1
+            problem.constraints.append(BinaryConstraint((LSH_var+f"C{i-1}", f"C{i-1}"), second_digit_condition)) # ABC1
+            
+            problem.constraints.append(BinaryConstraint((RSH_var, RHS[-1*i]), first_digit_condition)) # CC1
+            problem.constraints.append(BinaryConstraint((RSH_var, f"C{i}"), second_digit_condition)) # CC1
+
+            problem.constraints.append(BinaryConstraint((LSH_var+f"C{i-1}", RSH_var), digit_sum_condition)) #sum(ABC1)=sum(CC1)
 
         print(problem.variables)
         print(problem.domains)

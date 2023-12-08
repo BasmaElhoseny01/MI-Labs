@@ -1,1 +1,1 @@
-AA + BB = CD
+A + B = C
