@@ -75,13 +75,6 @@ class CryptArithmeticProblem(Problem):
         problem.domains = {}
         for letter in problem.variables:
             problem.domains[letter]=set(range(0,10))
-
-        # Adding Carries Variable
-        problem.variables.extend([f"C{i}" for i in range(min(len(LHS0),len(LHS1))+1)])
-
-        for i in range(min(len(LHS0),len(LHS1))+1):
-            problem.domains[f"C{i}"]=set([0,1])
-
         
 
         # Constraints
@@ -93,13 +86,25 @@ class CryptArithmeticProblem(Problem):
         problem.constraints.append(UnaryConstraint(operand_2[0], unary_not_equal_condition(0)))
         problem.constraints.append(UnaryConstraint(sum[0], unary_not_equal_condition(0)))
 
-        # C0 is set to 0 :D No Carry in
-        problem.constraints.append(UnaryConstraint('C0', unary_equal_condition(0)))
 
 
         # Different All diff Not Equal
         for index,variable in enumerate(problem.variables):
             problem.constraints.extend(BinaryConstraint((variable, other), not_equal_condition) for other in problem.variables [index+1:])
+
+
+        ###########################################Carries#################################
+        # Adding Carries Variable
+        problem.variables.extend([f"C{i}" for i in range(max(len(LHS0),len(LHS1))+1)])
+
+        for i in range(max(len(LHS0),len(LHS1))+1):
+            problem.domains[f"C{i}"]=set([0,1])
+
+        # C0 is set to 0 :D No Carry in
+        problem.constraints.append(UnaryConstraint('C0', unary_equal_condition(0)))
+
+
+        ###################################Addition Constraints#################
 
         # Summation constraint
         # operand_1[-1]+operand_2[-1]
@@ -109,32 +114,37 @@ class CryptArithmeticProblem(Problem):
         first_2_digit_condition = lambda abc, ab: abc[0:2] == str(ab)
 
         second_digit_condition = lambda ab, b: ab[-1] == str(b)
-        digit_sum_condition = lambda abc, cd: int(abc[2]+abc[1])+int(abc[0]) == int(cd[1])+int(cd[0])
 
+        digits_3_sum_condition = lambda abc, sum: (int(abc[2])+int(abc[1])+int(abc[0])) % 10 == sum
+        digits_3_carry_condition = lambda abc, carry: ((int(abc[2])+int(abc[1])+int(abc[0]))-(int(abc[2])+int(abc[1])+int(abc[0])) % 10)//10 == carry
 
         # A+B+C1=C+C2
 
         # A,B->AB  [2 binary]
         # AB,C0->ABC0 [2 binary]
-
-        # C,C1->CC1  [2 binary]
         
-        # sum(ABC0)=sum(CC1)  1 binary
-        # TODO Handel no equal size
+        # sum(ABC0) mod 10 = C  (sum)[1 binary]
+        # sum(ABC0)- [sum(ABC0) mod 10] = C1  (carry)[1 binary]
+
+        # 12 % 10 = 2  -> sum
+        # 12 % 10  = 2  12-2 =10 /10=1  C
+        # 14 % 10  = 4  14-4 =10 /10=1 C
+
+        # 8 % 10 =8 ==>sum
+        # 8 % 10  = 8  8-8 =0 /10=0  C
+
+        # TODO Handle not equal size
         for i in range(1,min(len(LHS0),len(LHS1))+1):
             # New Variable to be added in the Domain
             LSH_var=LHS0[-1*i]+LHS1[-1*i]
-            RSH_var=RHS[-1*i]+f"C{i}"
 
             problem.variables.append(LSH_var) # AB
             problem.variables.append(LSH_var+f"C{i-1}") # ABC0
 
-            problem.variables.append(RSH_var) # CC1
 
             # Domains for new Variables
-            problem.domains[LSH_var]=set([f"{a}{b}" for a in range(10) for b in range(10)])
-            problem.domains[LSH_var+f"C{i-1}"]=set([f"{a}{b}{c}" for a in range(10) for b in range(10) for c in range(2)])
-            problem.domains[RSH_var]=set([f"{a}{b}" for a in range(10) for b in range(2)])
+            problem.domains[LSH_var]=set([f"{a}{b}" for a in range(10) for b in range(10)]) #AB
+            problem.domains[LSH_var+f"C{i-1}"]=set([f"{a}{b}{c}" for a in range(10) for b in range(10) for c in range(2)]) # ABC0
 
 
             # Add Constraints
@@ -142,24 +152,65 @@ class CryptArithmeticProblem(Problem):
             problem.constraints.append(BinaryConstraint((LSH_var, LHS1[-1*i]), second_digit_condition)) #AB
     
 
-            problem.constraints.append(BinaryConstraint((LSH_var+f"C{i-1}", LSH_var), first_2_digit_condition)) # ABC1
-            problem.constraints.append(BinaryConstraint((LSH_var+f"C{i-1}", f"C{i-1}"), second_digit_condition)) # ABC1
-            
-            problem.constraints.append(BinaryConstraint((RSH_var, RHS[-1*i]), first_digit_condition)) # CC1
-            problem.constraints.append(BinaryConstraint((RSH_var, f"C{i}"), second_digit_condition)) # CC1
+            problem.constraints.append(BinaryConstraint((LSH_var+f"C{i-1}", LSH_var), first_2_digit_condition)) # ABC0
+            problem.constraints.append(BinaryConstraint((LSH_var+f"C{i-1}", f"C{i-1}"), second_digit_condition)) # ABC0
 
-            problem.constraints.append(BinaryConstraint((LSH_var+f"C{i-1}", RSH_var), digit_sum_condition)) #sum(ABC1)=sum(CC1)
 
-        print(problem.variables)
-        print(problem.domains)
+            problem.constraints.append(BinaryConstraint((LSH_var+f"C{i-1}", RHS[-1*i]), digits_3_sum_condition)) # A+B+C0 %10=C
+            problem.constraints.append(BinaryConstraint((LSH_var+f"C{i-1}", f"C{i}"), digits_3_carry_condition)) # A+B+C0 -(A+B+C0)%10=C1
 
+
+
+        digits_2_sum_condition = lambda ab, sum: (int(ab[1])+int(ab[0])) % 10 == sum
+        digits_2_carry_condition = lambda ab, carry: ((int(ab[1])+int(ab[0]))-(int(ab[1])+int(ab[0])) % 10)//10 == carry
+
+        # # Case Not equal size
+        if(len(LHS0)!=len(LHS1)):
+            LHS_big= LHS0 if  len(LHS0)>len(LHS1) else LHS1
+            # A+BC=DE
+            # B, C1 -->BC1 [2 binary]  
+            # sum(BC1) mod 10 = D  (sum)[1 binary]
+            # sum(BC1)- [sum(BC1) mod 10] = C2  (carry)[1 binary]
+
+            start_index = min(len(LHS0), len(LHS1))
+            end_index = max(len(LHS0), len(LHS1))
+            for i in range(start_index,end_index):
+                # Add new Variable
+                # print(LHS1[-i-1]+f"C{i}")
+                problem.variables.append(LHS_big[-i-1]+f"C{i}") # BC1
+
+                # Domains for new Variables
+                problem.domains[LHS_big[-i-1]+f"C{i}"]=set([f"{a}{b}" for a in range(10) for b in range(2)]) # BC1
+           
+
+                # Add Constraints
+                problem.constraints.append(BinaryConstraint((LHS_big[-i-1]+f"C{i}", LHS_big[-i-1]), first_digit_condition)) # BC1
+                problem.constraints.append(BinaryConstraint((LHS_big[-i-1]+f"C{i}",f"C{i}"), second_digit_condition)) # BC1
+
+                problem.constraints.append(BinaryConstraint((LHS_big[-i-1]+f"C{i}", RHS[-i-1]), digits_2_sum_condition)) # sum(BC1) mod 10 = D sum
+                problem.constraints.append(BinaryConstraint((LHS_big[-i-1]+f"C{i}", f"C{i+1}"), digits_2_carry_condition)) #  sum(BC1)- [sum(BC1) mod 10] = C2  (carry)[1 binary]
         
+        # A+B=CD
+        if(len(RHS)>max(len(LHS0),len(LHS1))):
+            max_len_LHS=max(len(LHS0),len(LHS1))
+            # Unary both = 1
+            problem.constraints.append(UnaryConstraint(RHS[0], unary_equal_condition(1)))
+            problem.constraints.append(UnaryConstraint(f"C{max_len_LHS}", unary_equal_condition(1)))
+
+            # Or it can be 1 binary that they are equal
+            # equal_condition = lambda a, b: a == b
+            # problem.constraints.append(BinaryConstraint((RHS[0],f"C{max_len_LHS}"), equal_condition)) #  C=C1
+   
+
 
 
 
         # problem.variables = []
         # problem.domains = {}
         # problem.constraints = []
+
+        # print(problem.variables)
+        # print(problem.domains)
         return problem
 
     # Read a cryptarithmetic puzzle from a file

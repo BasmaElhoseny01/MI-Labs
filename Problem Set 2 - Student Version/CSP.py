@@ -38,6 +38,7 @@ class BinaryConstraint(Constraint):
 
     def __init__(self, variables: Tuple[str, str], condition: Callable[[Any, Any], bool]) -> None:
         super().__init__()
+        # print("Binary Constraint",variables,condition)
         self.variables = variables
         self.condition = condition
     
@@ -48,7 +49,7 @@ class BinaryConstraint(Constraint):
         variable1, variable2 = self.variables
         value1, value2 = assignment.get(variable1), assignment.get(variable2)
         if value1 is None or value2 is None: return False
-        print("...",variable1,variable2,value1,value2,self.condition(value1, value2))
+        # print("...",variable1,variable2,value1,value2,self.condition(value1, value2))
         return self.condition(value1, value2)
     
     # Given the name of a variable in the constraint, this function returns the other variable.

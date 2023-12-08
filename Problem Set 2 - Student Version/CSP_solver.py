@@ -227,7 +227,7 @@ def recursive_backtracking(problem: Problem,assignment:Assignment,domains: Dict[
 
     # Pick next value as ordered by the east restraining value heuristic
     for value in ordered_values:
-        # print("Assigning",variable,value)
+        print("Assigning",variable,value)
         
         # Applying Forward Check on this assignment
         if forward_checking(problem, variable, value, domains_copy):
