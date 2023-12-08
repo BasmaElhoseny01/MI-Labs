@@ -209,8 +209,8 @@ class CryptArithmeticProblem(Problem):
         # problem.domains = {}
         # problem.constraints = []
 
-        # print(problem.variables)
-        # print(problem.domains)
+        print(problem.variables)
+        print(problem.domains)
         return problem
 
     # Read a cryptarithmetic puzzle from a file

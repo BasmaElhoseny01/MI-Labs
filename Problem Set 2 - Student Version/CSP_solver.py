@@ -202,10 +202,10 @@ def solve(problem: Problem) -> Optional[Assignment]:
     if(not unary_solvable): return None
 
     # Apply BackTracking Search Starting with empty assignment :D [Incremental building of teh solution :D]
-    solution=recursive_backtracking(problem,{},problem.domains)
-    print("sol:",solution)
-    return solution
-    # return recursive_backtracking(problem,{},problem.domains)
+    # solution=recursive_backtracking(problem,{},problem.domains)
+    # print("sol:",solution)
+    # return solution
+    return recursive_backtracking(problem,{},problem.domains)
     NotImplemented()
 
 def recursive_backtracking(problem: Problem,assignment:Assignment,domains: Dict[str, set]):
@@ -227,7 +227,7 @@ def recursive_backtracking(problem: Problem,assignment:Assignment,domains: Dict[
 
     # Pick next value as ordered by the east restraining value heuristic
     for value in ordered_values:
-        print("Assigning",variable,value)
+        # print("Assigning",variable,value)
         
         # Applying Forward Check on this assignment
         if forward_checking(problem, variable, value, domains_copy):
