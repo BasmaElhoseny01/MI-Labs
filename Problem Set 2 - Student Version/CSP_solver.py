@@ -182,86 +182,67 @@ def least_restraining_values(problem: Problem, variable_to_assign: str, domains:
 #            Also, if 1-Consistency deems the whole problem unsolvable, you shouldn't call "problem.is_complete" at all.
 def solve(problem: Problem) -> Optional[Assignment]:
     #TODO: Write this function
-    print("solve()")
-    # print(problem.variables)
-    # print()
-    print(problem.domains)
-    print("--------------------------------------------------------------------")
-    # print(problem.constraints)
-
+    # print("solve()")
 
     # Handling Unary constraints using 1-Consistency
     unary_solvable=one_consistency(problem)
 
-    # The Unary constraints makes the problem un solvable
+    # Check The Unary constraints makes the problem unSolvable :D Best Easy Solution <3
     if(not unary_solvable): return None
 
-    # Apply BackTracking Search Starting with empty assignment :D
+    # Apply BackTracking Search Starting with empty assignment :D [Incremental building of teh solution :D]
     return recursive_backtracking(problem,{},problem.domains)
     NotImplemented()
 
 def recursive_backtracking(problem: Problem,assignment:Assignment,domains: Dict[str, set]):
-    print("recursive_backtracking()")
+    # print("recursive_backtracking()")
 
     # check if assignment is complete [Exit Condition]
     if problem.is_complete(assignment): return assignment 
 
-
     # Variable Ordering MRV
     variable=minimum_remaining_values(problem,domains)
 
-    # Value Ordering 
+    # Value Ordering by least restraining value heuristic
     ordered_values=least_restraining_values(problem, variable, domains)
 
-    print(variable,"->",ordered_values)
-
-    # Create a copy [Deep] of the domains Dictionary
+    # Create a copy [Deep] of the domains Dictionary To Be used in BackTracking and Assigning new Values to the same variable
     domains_copy=copy.deepcopy(domains)
 
 
+
+    # Pick next value as ordered by the east restraining value heuristic
     for value in ordered_values:
-        print("Assigning",variable,value)
-        # if(variable=='(0, 7)'):
-            # print()
-            #  print("at-------",variable,value,ordered_values)
-            #  print(domains)
+        # print("Assigning",variable,value)
         
-        # Take this Assignment variable=value
-        assignment[variable]=value
-
-        # Assigned Variable so remove from domain from the domain Dictionary since they contain the current domains of unassigned variables only.   
-        if variable in domains_copy:
-            del domains_copy[variable]
-        # if(variable=='(0, 7)'): print("****************************Before",domains_copy)
-
+        # Applying Forward Check on this assignment
         if forward_checking(problem, variable, value, domains_copy):
-            # if(variable=='(0, 7)'): print("******************After Forward",domains_copy)
+            # This Assignment passed Forward Check
 
-            # Assignment is fine
-            # Go next
+            # Take this Assignment variable=value
+            assignment[variable]=value
+
+            # Assigned Variable so remove it from domain from the domain Dictionary since they contain the current domains of unassigned variables only.   
+            if variable in domains_copy:
+                del domains_copy[variable]
+
+            # Assignment is fine Go next 
             result=recursive_backtracking(problem,assignment,domains_copy)
             if result : return result
 
             # Undo Effect of forward check
             domains_copy=copy.deepcopy(domains)
 
-            print("Back Track",variable,value)
+            # Remove Assignment -->  from forward checking this assignment lets other variable has empty domain
+            del assignment[variable]
 
-            # if(variable=='(0, 7)'): print("******************After",domains_copy)
-
+            # print("Back Track from ",variable,value)
         else:
-            # remove this assignment --> from forward checking this assignment lets other variable has empty domain
-            print("Invalid Forward Check",variable,value)
-
-            # print("********************old BackTrack[domains_copy]",domains_copy)
-            # print("********************old BackTrack[domains]",domains)
+            # This Assignment is invalid by Forward Check so need to continue in thi track :D
+            # print("Invalid Forward Check",variable,value)
 
             # Undo Effect of forward check
             domains_copy=copy.deepcopy(domains)
 
-            # Remove Assignment
-            del assignment[variable]
-
-        
 
     return None
