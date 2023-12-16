@@ -113,6 +113,10 @@ class CryptArithmeticProblem(Problem):
         # Summation constraint
         # operand_1[-1]+operand_2[-1]
         # Lambda Expression that takes 2 Variables and check if the second one is the first right digit in the first parameter
+        first_digit_condition_3= lambda abc, a: abc[0] == str(a)
+        second_digit_condition_3= lambda abc, b: abc[1] == str(b)
+        third_digit_condition_3= lambda abc, c: abc[2] == str(c)
+
         first_digit_condition = lambda ab, a: ab[0] == str(a)
         
         first_2_digit_condition = lambda abc, ab: abc[0:2] == str(ab)
@@ -124,7 +128,7 @@ class CryptArithmeticProblem(Problem):
 
         # A+B+C0=C+C1
 
-        # A,B->AB  [2 binary]
+        # A,B->AB  [2 binary]  **************************** NO NEED FOR THIS :D it gives me time limit just define 1 variable ABC0 with 3 Binary constrains ****************
         # AB,C0->ABC0 [2 binary]
         
         # sum(ABC0) mod 10 = C  (sum)[1 binary]
@@ -143,22 +147,27 @@ class CryptArithmeticProblem(Problem):
             # New Variable to be added in the Domain
             LSH_var=LHS0[-1*i]+LHS1[-1*i]
 
-            problem.variables.append(LSH_var) # AB
+            # problem.variables.append(LSH_var) # AB
             problem.variables.append(LSH_var+f"C{i-1}") # ABC0
 
 
-            # Domains for new Variables
-            problem.domains[LSH_var]=set([f"{a}{b}" for a in range(10) for b in range(10)]) #AB
+            # # Domains for new Variables
+            # if(LSH_var[0]!=LSH_var[1]):
+            #     problem.domains[LSH_var]=set([f"{a}{b}" for a in range(10) for b in range(10) if a!=b]) #AB
+            # else:
+            #     problem.domains[LSH_var]=set([f"{a}{b}" for a in range(10) for b in range(10) if a==b]) #AB
+            
             problem.domains[LSH_var+f"C{i-1}"]=set([f"{a}{b}{c}" for a in range(10) for b in range(10) for c in range(2)]) # ABC0
 
 
             # Add Constraints
-            problem.constraints.append(BinaryConstraint((LSH_var, LHS0[-1*i]), first_digit_condition)) #AB
-            problem.constraints.append(BinaryConstraint((LSH_var, LHS1[-1*i]), second_digit_condition)) #AB
+            # problem.constraints.append(BinaryConstraint((LSH_var, LHS0[-1*i]), first_digit_condition)) #AB
+            # problem.constraints.append(BinaryConstraint((LSH_var, LHS1[-1*i]), second_digit_condition)) #AB
     
 
-            problem.constraints.append(BinaryConstraint((LSH_var+f"C{i-1}", LSH_var), first_2_digit_condition)) # ABC0
-            problem.constraints.append(BinaryConstraint((LSH_var+f"C{i-1}", f"C{i-1}"), second_digit_condition)) # ABC0
+            problem.constraints.append(BinaryConstraint((LSH_var+f"C{i-1}", LHS0[-1*i]), first_digit_condition_3)) # ABC0
+            problem.constraints.append(BinaryConstraint((LSH_var+f"C{i-1}", LHS1[-1*i]), second_digit_condition_3)) # ABC0
+            problem.constraints.append(BinaryConstraint((LSH_var+f"C{i-1}", f"C{i-1}"), third_digit_condition_3)) # ABC0
 
 
             problem.constraints.append(BinaryConstraint((LSH_var+f"C{i-1}", RHS[-1*i]), digits_3_sum_condition)) # A+B+C0 %10=C

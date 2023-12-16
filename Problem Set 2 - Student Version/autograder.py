@@ -182,7 +182,7 @@ def main(args: argparse.Namespace):
     exit(total_grade)
 
 if __name__ == "__main__":
-    print("Basma")
+    # print("Basma")
     parser = argparse.ArgumentParser(description="Automatically grades the solutions for the problem set")
     parser.add_argument("--question", "-q", default="all", help="choose the question(s) to include in the grading (or prefix with ~ to exclude). A question number can be followed by a slash / followed by a glob pattern to filter the testcases.")
     parser.add_argument("--debug", "-d", action="store_true", help="Disables timeout to enable debugging via the autograder")
