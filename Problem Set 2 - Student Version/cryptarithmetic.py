@@ -73,6 +73,7 @@ class CryptArithmeticProblem(Problem):
 
         # Getting Domains
         problem.domains = {}
+        print("Entering Loop(1)[Adding  Variables]...................")
         for letter in problem.variables:
             problem.domains[letter]=set(range(0,10))
         
@@ -89,6 +90,7 @@ class CryptArithmeticProblem(Problem):
 
 
         # Different All diff Not Equal
+        print("Entering Loop(2) [all diff]...................")
         for index,variable in enumerate(problem.variables):
             problem.constraints.extend(BinaryConstraint((variable, other), not_equal_condition) for other in problem.variables [index+1:])
 
@@ -97,6 +99,8 @@ class CryptArithmeticProblem(Problem):
         # Adding Carries Variable
         problem.variables.extend([f"C{i}" for i in range(max(len(LHS0),len(LHS1))+1)])
 
+
+        print("Entering Loop(3) [Adding Carries Var]...................")
         for i in range(max(len(LHS0),len(LHS1))+1):
             problem.domains[f"C{i}"]=set([0,1])
 
@@ -118,7 +122,7 @@ class CryptArithmeticProblem(Problem):
         digits_3_sum_condition = lambda abc, sum: (int(abc[2])+int(abc[1])+int(abc[0])) % 10 == sum
         digits_3_carry_condition = lambda abc, carry: ((int(abc[2])+int(abc[1])+int(abc[0]))-(int(abc[2])+int(abc[1])+int(abc[0])) % 10)//10 == carry
 
-        # A+B+C1=C+C2
+        # A+B+C0=C+C1
 
         # A,B->AB  [2 binary]
         # AB,C0->ABC0 [2 binary]
@@ -134,6 +138,7 @@ class CryptArithmeticProblem(Problem):
         # 8 % 10  = 8  8-8 =0 /10=0  C
 
         # TODO Handle not equal size
+        print("Entering Loop(4) [Constraints 1 ].........")
         for i in range(1,min(len(LHS0),len(LHS1))+1):
             # New Variable to be added in the Domain
             LSH_var=LHS0[-1*i]+LHS1[-1*i]
@@ -167,13 +172,17 @@ class CryptArithmeticProblem(Problem):
         # # Case Not equal size
         if(len(LHS0)!=len(LHS1)):
             LHS_big= LHS0 if  len(LHS0)>len(LHS1) else LHS1
-            # A+BC=DE
+            #  A
+            # BC
+            # DE
             # B, C1 -->BC1 [2 binary]  
             # sum(BC1) mod 10 = D  (sum)[1 binary]
             # sum(BC1)- [sum(BC1) mod 10] = C2  (carry)[1 binary]
 
             start_index = min(len(LHS0), len(LHS1))
             end_index = max(len(LHS0), len(LHS1))
+            print("Entering Loop(5) [Constraints 2 ].........")
+            print("start_index",start_index,"end_index",end_index)
             for i in range(start_index,end_index):
                 # Add new Variable
                 # print(LHS1[-i-1]+f"C{i}")
@@ -209,8 +218,9 @@ class CryptArithmeticProblem(Problem):
         # problem.domains = {}
         # problem.constraints = []
 
-        print(problem.variables)
-        print(problem.domains)
+        # print(problem.variables)
+        # print(problem.domains)]
+        print("end....")
         return problem
 
     # Read a cryptarithmetic puzzle from a file

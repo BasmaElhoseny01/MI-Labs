@@ -227,7 +227,7 @@ def recursive_backtracking(problem: Problem,assignment:Assignment,domains: Dict[
 
     # Pick next value as ordered by the east restraining value heuristic
     for value in ordered_values:
-        # print("Assigning",variable,value)
+        print("Assigning",variable,value)
         
         # Applying Forward Check on this assignment
         if forward_checking(problem, variable, value, domains_copy):
@@ -251,13 +251,16 @@ def recursive_backtracking(problem: Problem,assignment:Assignment,domains: Dict[
             # Remove Assignment -->  from forward checking this assignment lets other variable has empty domain
             del assignment[variable]
 
-            # print("Back Track from ",variable,value)
+            print("Back Track from ",variable,value)
         else:
             # This Assignment is invalid by Forward Check so need to continue in thi track :D
             # print("Invalid Forward Check",variable,value)
 
             # Undo Effect of forward check
+            print("before Copy")
             domains_copy=copy.deepcopy(domains)
+            print("After Copy")
+
 
 
     return None

@@ -38,7 +38,7 @@ class BinaryConstraint(Constraint):
 
     def __init__(self, variables: Tuple[str, str], condition: Callable[[Any, Any], bool]) -> None:
         super().__init__()
-        # print("Binary Constraint",variables,condition)
+        # print("Binary Constraint",variables,str(condition))
         self.variables = variables
         self.condition = condition
     

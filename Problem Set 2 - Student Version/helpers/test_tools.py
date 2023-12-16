@@ -270,6 +270,7 @@ def run_csp_solve_cryptarithmetic(
     
     cls = load_function(problem_cls_path)
     problem = cls.from_file(problem_file)
+    print("Problem Loaded ................")
     
     solve = load_function("CSP_solver.solve")
     solution = solve(problem)
