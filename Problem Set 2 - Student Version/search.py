@@ -111,7 +111,7 @@ def alphabeta_search(game: Game[S, A], state: S,alpha,beta, heuristic: Heuristic
     
     # For Value ordering for the exploration of the children
     if order_values:
-        print("order_values")
+        # print("order_values")
         # We need to sort actions_nextStates based on the heuristic of the next states
         # where here we will use the heuristic of the next state [the second element in the tuple] to sort the actions we can pick from :D
         actions_nextStates=sorted(actions_nextStates, key=lambda x: heuristic(game, x[1], agent), reverse=True)
@@ -122,48 +122,40 @@ def alphabeta_search(game: Game[S, A], state: S,alpha,beta, heuristic: Heuristic
         # It is max Node Set value to be -ve infinity
         value= -1* math.inf
         best_action=None
-
-        #  Explore Children
-        for action,next_state in actions_nextStates:
-            # The Next State from this action :D
-            # next_state=game.get_successor(state, action)
-
-            # Call Min Value for the next node bec --> it will enemy (Min Node)
-            next_min_node_value,_=alphabeta_search(game,next_state,alpha,beta,heuristic,max_depth-1,order_values=order_values)
-                
-            # Take the max of current value and the value of the just explored min_Node
-            # value=max(value,next_min_node_value)
-            if value<next_min_node_value:
-                value=next_min_node_value
-                best_action=action
-
-            # Check if pruning is required [We are in max node then check with beta]
-            if(value>=beta): return value ,best_action #No need to continue all what will get next will be useless for us <3
-
-            # Passed pruning check --> the we need to update alpha
-            alpha=max(alpha,value)
-        # After all children nodes are explored (No pruning in this case)
-        # Pass the node value to the its parent
-        return value,best_action
-
+    
     else:
         # Enemy
         # It is min Node Set value to be +ve infinity
         value= math.inf
         best_action=None
 
-        #  Explore Children
-        for action,next_state in actions_nextStates:
-            # The Next State from this action :D
-            # next_state=game.get_successor(state, action)
+    #  Explore Children
+    for action,next_state in actions_nextStates:
+        # The Next State from this action :D
+        # next_state=game.get_successor(state, action)
 
-            # Call Min Value for the next node bec --> it will enemy (Min Node)
-            next_max_node_value,_=alphabeta_search(game,next_state,alpha,beta,heuristic,max_depth-1,order_values=order_values)
+        # Call Min Value for the next node bec --> it will enemy (Min Node)
+        next_node_value,_=alphabeta_search(game,next_state,alpha,beta,heuristic,max_depth-1,order_values=order_values)
+            
+        if agent==0:
+                # Take the max of current value and the value of the just explored min_Node
+                # value=max(value,next_min_node_value)
+                if value<next_node_value:
+                    value=next_node_value
+                    best_action=action
 
+                # Check if pruning is required [We are in max node then check with beta]
+                if(value>=beta): return value ,best_action #No need to continue all what will get next will be useless for us <3
+
+                # Passed pruning check --> the we need to update alpha
+                alpha=max(alpha,value)
+
+
+        else:
             # Take the max of current value and the value of the just explored min_Node
             # value=min(value,next_max_node_value)
-            if value>next_max_node_value:
-                value=next_max_node_value
+            if value>next_node_value:
+                value=next_node_value
                 best_action=action
 
 
@@ -172,9 +164,11 @@ def alphabeta_search(game: Game[S, A], state: S,alpha,beta, heuristic: Heuristic
 
             # Passed pruning check --> the we need to update beta
             beta=min(beta,value)
-        # After all children nodes are explored (No pruning in this case)
-        # Pass the node value to the its parent
-        return value,best_action
+            
+       
+    # After all children nodes are explored (No pruning in this case)
+    # Pass the node value to the its parent
+    return value,best_action
 
 
 
@@ -208,7 +202,7 @@ def alphabeta(game: Game[S, A], state: S, heuristic: HeuristicFunction, max_dept
 # get values[0].
 def alphabeta_with_move_ordering(game: Game[S, A], state: S, heuristic: HeuristicFunction, max_depth: int = -1) -> Tuple[float, A]:
     #TODO: Complete this function
-    print("alphabeta_with_move_ordering()")
+    # print("alphabeta_with_move_ordering()")
 
     # This function is the same as above all we need to do is to sort the children being explored
 
