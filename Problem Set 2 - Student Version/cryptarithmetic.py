@@ -59,10 +59,10 @@ class CryptArithmeticProblem(Problem):
         #  unary_equal_condition is a lambda function that takes one parameter f. It returns another lambda function that takes a parameter v and checks if v is equal to f.
         unary_equal_condition = lambda f: (lambda v: v == f)
 
-        print("from_text()")
-        print(text)
-        print( problem.LHS )
-        print( problem.RHS )
+        # print("from_text()")
+        # print(text)
+        # print( problem.LHS )
+        # print( problem.RHS )
 
 
         # Getting Variables
@@ -73,7 +73,7 @@ class CryptArithmeticProblem(Problem):
 
         # Getting Domains
         problem.domains = {}
-        print("Entering Loop(1)[Adding  Variables]...................")
+        # print("Entering Loop(1)[Adding  Variables]...................")
         for letter in problem.variables:
             problem.domains[letter]=set(range(0,10))
         
@@ -90,7 +90,7 @@ class CryptArithmeticProblem(Problem):
 
 
         # Different All diff Not Equal
-        print("Entering Loop(2) [all diff]...................")
+        # print("Entering Loop(2) [all diff]...................")
         for index,variable in enumerate(problem.variables):
             problem.constraints.extend(BinaryConstraint((variable, other), not_equal_condition) for other in problem.variables [index+1:])
 
@@ -100,7 +100,7 @@ class CryptArithmeticProblem(Problem):
         problem.variables.extend([f"C{i}" for i in range(max(len(LHS0),len(LHS1))+1)])
 
 
-        print("Entering Loop(3) [Adding Carries Var]...................")
+        # print("Entering Loop(3) [Adding Carries Var]...................")
         for i in range(max(len(LHS0),len(LHS1))+1):
             problem.domains[f"C{i}"]=set([0,1])
 
@@ -138,7 +138,7 @@ class CryptArithmeticProblem(Problem):
         # 8 % 10  = 8  8-8 =0 /10=0  C
 
         # TODO Handle not equal size
-        print("Entering Loop(4) [Constraints 1 ].........")
+        # print("Entering Loop(4) [Constraints 1 ].........")
         for i in range(1,min(len(LHS0),len(LHS1))+1):
             # New Variable to be added in the Domain
             LSH_var=LHS0[-1*i]+LHS1[-1*i]
@@ -181,8 +181,8 @@ class CryptArithmeticProblem(Problem):
 
             start_index = min(len(LHS0), len(LHS1))
             end_index = max(len(LHS0), len(LHS1))
-            print("Entering Loop(5) [Constraints 2 ].........")
-            print("start_index",start_index,"end_index",end_index)
+            # print("Entering Loop(5) [Constraints 2 ].........")
+            # print("start_index",start_index,"end_index",end_index)
             for i in range(start_index,end_index):
                 # Add new Variable
                 # print(LHS1[-i-1]+f"C{i}")
@@ -220,7 +220,7 @@ class CryptArithmeticProblem(Problem):
 
         # print(problem.variables)
         # print(problem.domains)]
-        print("end....")
+        # print("end....")
         return problem
 
     # Read a cryptarithmetic puzzle from a file

@@ -223,4 +223,66 @@ def alphabeta_with_move_ordering(game: Game[S, A], state: S, heuristic: Heuristi
 # they now act as chance nodes (they act randomly).
 def expectimax(game: Game[S, A], state: S, heuristic: HeuristicFunction, max_depth: int = -1) -> Tuple[float, A]:
     #TODO: Complete this function
+
+    # check terminal state
+    terminal, values = game.is_terminal(state)
+
+    if terminal:
+        # print("Terminal State",values,state)
+        return values[0], None # if it is terminal state then return value for this agent
+    
+    # Check whose turn
+    agent=game.get_turn(state)
+
+    if(max_depth==0):
+        # We have reached max Depth the use the heuristic at this point by it is min Node 
+        if agent==0:
+            value=heuristic(game, state, agent)
+        else:
+            # Then take the -ve of heuristic
+            value=-1* heuristic(game,state,agent)
+        return value,None
+    
+
+    best_action=None
+    if agent==0:
+        # My Turn
+        # My turn so of course I am Max Node
+        value= -1* math.inf
+
+        # Explore next children
+        for action in game.get_actions(state):
+            next_state=game.get_successor(state, action)
+
+            next_node_value,_=expectimax(game, next_state, heuristic, max_depth-1)
+
+            # Check if better than my current  value
+            if next_node_value> value:
+                value=next_node_value
+                best_action=action
+                
+        
+    else: 
+        # Enemy
+        value= 0 #Used to sum values of the children then take average
+        # Explore next children
+        for action in game.get_actions(state):
+            next_state=game.get_successor(state, action)
+
+            next_node_value,_=expectimax(game, next_state, heuristic, max_depth-1)
+
+            # add the value to total sum
+            value+=next_node_value
+
+        # Take the Average of all teh values of the children
+        value/=len(game.get_actions(state))
+    return value,best_action
+
+    
+
+    
+ 
+
+
+    
     NotImplemented()
