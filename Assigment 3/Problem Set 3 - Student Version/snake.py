@@ -6,6 +6,7 @@ from helpers.mt19937 import RandomGenerator
 from helpers.utils import NotImplemented
 import json
 from dataclasses import dataclass
+import math
 
 """
 Environment Description:
@@ -23,6 +24,7 @@ Environment Description:
     Winning the game increases the reward by 100.
     Losing the game decreases the reward by 100.
 """
+
 
 # IMPORTANT: This class will be used to store an observation of the snake environment
 @dataclass(frozen=True)
@@ -78,8 +80,20 @@ class SnakeEnv(Environment[SnakeObservation, Direction]):
             self.rng.seed(seed) # Initialize the random generator using the seed
         # TODO add your code here
         # IMPORTANT NOTE: Define the snake before calling generate_random_apple
-        NotImplemented()
+        print("reset()")
+        
+        
+        # Snake is initially of length 1 and at the centre
+        self.snake=[Point(x=math.floor(self.width/2),y=math.floor(self.height/2))]
 
+
+        # Start the snake is in the Left direction
+        self.direction = Direction.LEFT
+
+        # Generating the first apple
+        self.apple=self.generate_random_apple()
+
+    
         return SnakeObservation(tuple(self.snake), self.direction, self.apple)
 
     def actions(self) -> List[Direction]:
@@ -92,7 +106,62 @@ class SnakeEnv(Environment[SnakeObservation, Direction]):
         # TODO add your code here
         # a snake can wrap around the grid
         # NOTE: The action order does not matter
-        NotImplemented()
+        print("actions()")
+        # Actions to be taken based on conditions mentioned above
+
+        # Initially 
+        actions={Direction.RIGHT,Direction.UP,Direction.LEFT,Direction.DOWN,Direction.NONE}
+
+        # The action can not move the snake in the same direction (if moving right don't give an action saying move right).
+        actions.remove(self.direction)
+
+        # The action can not move the snake in the opposite direction of its current direction.
+        opposite_direction=self.direction.rotate(2)
+        actions.remove(opposite_direction)       
+
+        
+        # The snake can not eat itself.
+        # Check if the successor of the action occupied by the snake
+
+        # Getting head of the snake --> the last index in the snake list
+        snake_head=self.snake[0]
+
+        actions_copy=actions.copy()
+        for action in actions_copy:
+            # Action of the vector
+            vector=Direction._Vectors[action]
+
+            # Getting next points
+            new_point=snake_head + vector
+
+            # The snake can wrap around the grid.
+            # Module next point to be in grid
+            new_point = Point((new_point.x) % self.width, (new_point.y) % self.height)
+
+            # if(new_point.x==self.width):
+            #     new_point=new_point.__sub__(Point(self.width,0))
+            # elif(new_point.x==-1):
+            #     new_point=new_point.__add__(Point(self.width,0))
+
+
+            # if(new_point.y==self.height):
+            #     new_point=new_point.__sub__(Point(0,self.height))
+            # elif(new_point.y==-1):
+            #     new_point=new_point.__add__(Point(0,self.height))
+            
+            
+
+            if action is Direction.NONE:
+            # then next point is in the same direction
+                new_point=snake_head + Direction._Vectors[self.direction]
+
+
+            # if snake is in this cell then he will eat himself
+            if(new_point in self.snake):
+                actions.remove(action)
+
+        return actions
+        # NotImplemented()
 
     def step(self, action: Direction) -> \
             Tuple[SnakeObservation, float, bool, Dict]:
@@ -110,11 +179,78 @@ class SnakeEnv(Environment[SnakeObservation, Direction]):
             - info (Dict): A dictionary containing any extra information. You can keep it empty.
         """
         # TODO Complete the following function
-        NotImplemented()
 
+        # # Getting Head
+        # print("snake_head",snake_head)
+        reward=0
+
+        # Action of the vector
+        action_vector=Direction._Vectors[action]
+
+        if action is Direction.NONE:
+        # then next point is in the same direction
+            action_vector= Direction._Vectors[self.direction]
+
+        # Update the direction to be the same as the action
+        if action!=Direction.NONE:
+            self.direction=action
+
+
+        # Make Him move [Head only]
+        snake_head=self.snake[0]+action_vector
+        # The snake can wrap around the grid.
+        # Module next point to be in grid
+        snake_head = Point((snake_head.x) % self.width, (snake_head.y) % self.height)
+
+
+        
+
+    
+        # Case(1) Lose
+        # if snake is in this cell then he will eat himself
+        if(snake_head in self.snake):
+            reward-=100
+            done= True
+            observation = SnakeObservation(tuple(self.snake), self.direction, self.apple)
+            return observation, reward, done, {}
+        
+
+        # Case(3)
+        # Add new head to the snake
+        self.snake.insert(0,snake_head)
+
+
+        # Non terminating action
         done = False
-        reward = 0
+
+        #Case(2) If eating apple
+        if snake_head==self.apple:
+            # inc reward
+            reward+=1          
+
+            # Generate new apple for the next
+            if not len(self.snake) == self.width * self.height:
+                self.apple=self.generate_random_apple()
+
+        else:
+            # no apple 
+            reward=0
+
+            # Remove old tail
+            self.snake.pop()        
+        
+
+
+        # Case(2) Win
+        # if the len of the snack list is = to area of the map :D
+        if(len(self.snake)==self.width*self.height):        
+            reward+=100
+            done= True
+      
+                 
+
         observation = SnakeObservation(tuple(self.snake), self.direction, self.apple)
+
         
         return observation, reward, done, {}
 
